@@ -1,0 +1,93 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "DenyUnlessTLS",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:DeleteObject"
+            ],
+            "Resource": "arn:aws:s3:::{bucketName}/*",
+            "Condition": {
+                "Bool": {
+                    "aws:SecureTransport": "False"
+                }
+            }
+        },
+        {
+            "Sid": "DenyUnEncryptedObjectUploads",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::{bucketName}/*",
+            "Condition": {
+                "Null": {
+                    "s3:x-amz-server-side-encryption": "True"
+                },
+                "StringNotEquals": {
+                    "s3:x-amz-server-side-encryption": "AES256"
+                }
+            }
+        },
+        {
+            "Sid": "DenyBucketOpsUnlessByAdminRole",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": [
+                "s3:DeleteBucket",
+                "s3:DeleteBucketPolicy",
+                "s3:DeleteBucketWebsite",
+                "s3:PutAccelerateConfiguration",
+                "s3:PutBucketAcl",
+                "s3:PutBucketCORS",
+                "s3:PutBucketLogging",
+                "s3:PutBucketTagging",
+                "s3:PutBucketNotification",
+                "s3:PutBucketPolicy",
+                "s3:PutBucketVersioning",
+                "s3:PutBucketWebsite",
+                "s3:PutLifecycleConfiguration",
+                "s3:PutReplicationConfiguration"
+            ],
+            "Resource": "arn:aws:s3:::{bucketName}",
+            "Condition": {
+                "StringNotLike": {
+                    "aws:userid": [
+                        "{role1}:*",
+                        "{role2}:*",
+                        "{acctNum}"
+                    ]
+                }
+            }
+        },
+        {
+            "Sid": "DenyPutObjectACL",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": [
+                "s3:PutObjectAcl",
+                "s3:PutObjectVersionAcl"
+            ],
+            "Resource": "arn:aws:s3:::{bucketName}/*"
+        },
+        {
+            "Sid": "DenyUnlessVPCEndpoint",
+            "Effect": "Deny",
+            "Principal": "*",
+            "Action": [
+                "s3:PutObject",
+                "s3:GetObject",
+                "s3:DeleteObject"
+            ],
+            "Resource": "arn:aws:s3:::{bucketName}/*",
+            "Condition": {
+                "StringNotEquals": {
+                    "aws:SourceVpce": "{vpcID}"
+                }
+            }
+        }
+    ]
+}
